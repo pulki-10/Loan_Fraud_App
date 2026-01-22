@@ -1,4 +1,10 @@
 import React, { useState, useEffect, useRef } from 'react';
+import DynamicAgentIcon from '../assets/agentIcons/dynamic-agent.png';
+import DelegationAgentIcon from '../assets/agentIcons/delegation-agent.png';
+import GraphAgentIcon from '../assets/agentIcons/graph agent.png';
+import BehaviouralAgentIcon from '../assets/agentIcons/behavioural-agent.png';
+import KYCIcon from '../assets/agentIcons/kyc-agent.png';
+import CrossIcon from '../assets/agentIcons/cross.png'
 
 //  Component for the Shimmer Effect
 const ReportSkeleton = () => (
@@ -26,15 +32,19 @@ const ProcessStreamModal = ({ isOpen, onClose, applicantId, logs, explainableAI 
       <div className="stream-modal-content">
         <div className="stream-header">
           <span>Process Stream for Applicant ID : {applicantId}</span>
-          <button className="stream-close-x" onClick={onClose}>&times;</button>
+          <button className="stream-close-x" onClick={onClose}>
+             <div >
+    <img src={CrossIcon} alt="x"  /> 
+  </div>
+          </button>
         </div>
         
         <div className="stream-body">
           <div className="stream-field">
             <span className="stream-label">Running</span>
             <span className="stream-value">
-              <span className="shield-icon">🛡️</span> KYC_Agent
-            </span>
+              <img src={KYCIcon} alt="" className="agent-icon-small" /> KYC_Agent
+  </span>
           </div>
 
           <div className="stream-field">
@@ -138,16 +148,30 @@ const ApplicationReviewModal = ({ isOpen, onClose, appData }) => {
       <div className="modal-content">
         <div className="modal-header">
           <span>Application Review</span>
-          <button className="close-x" onClick={onClose}>&times;</button>
+          <button className="stream-close-x" onClick={onClose}>
+             <div >
+    <img src={CrossIcon} alt="x"  /> 
+  </div>
+          </button>
         </div>
         
         <div className="modal-container">
           <aside className="modal-sidebar">
-            <div className="sidebar-nav-item">📄 Dynamic Orch. Agent</div>
-            <div className="sidebar-nav-item">📊 Delegation Agent</div>
-            <div className="sidebar-nav-item">📈 Graph Agent</div>
-            <div className="sidebar-nav-item">📉 Behavioural Agent</div>
-            <div className="sidebar-nav-item active">🛡️ KYC_Agent</div>
+            <div className="sidebar-nav-item">
+    <img src={DynamicAgentIcon} alt="" className="agent-icon-small" /> Dynamic Orch. Agent
+  </div>
+  <div className="sidebar-nav-item">
+    <img src={DelegationAgentIcon} alt="" className="agent-icon-small" /> Delegation Agent
+  </div>
+  <div className="sidebar-nav-item">
+    <img src={GraphAgentIcon} alt="" className="agent-icon-small" /> Graph Agent
+  </div>
+  <div className="sidebar-nav-item">
+    <img src={BehaviouralAgentIcon} alt="" className="agent-icon-small" /> Behavioural Agent
+  </div>
+  <div className="sidebar-nav-item active">
+    <img src={KYCIcon} alt="" className="agent-icon-small" /> KYC_Agent
+  </div>
           </aside>
 
           <main className="modal-main">

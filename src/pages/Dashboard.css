@@ -214,7 +214,7 @@
     text-align: left;
     padding: 12px 15px;
     background-color: #f7f9fa; /* Header background */
-    color: var(--text-dark);
+    color: #000048;
     font-weight: 600;
     border-bottom: 2px solid var(--border-color);
 }
@@ -222,11 +222,15 @@
 .dashboard-table td {
     padding: 9px 9px;
     /* border-bottom: 1px solid #eee; */
-    color: var(--text-light);
+    color: #53565A;
     border-bottom: 0.4px solid #aaaacd;
 }
 
-
+.dashboard-table .app-id {
+  font-family: "Gellix";
+  color: #2F78C4;
+  font-weight: 600; /* Optional: makes it stand out more */
+}
 
 .dashboard-table tbody tr:hover {
     background-color: #f0f8ff;
@@ -257,8 +261,7 @@
 }
 
 .status-rejected {
-    
-    color: #B81F2D;
+    color: #B81F2D
 }
 
 /* --- Review Icon Styling (Eye Icon) --- */
@@ -480,8 +483,8 @@
 .sidebar-nav-item.active {
   background: #fff;
   width: inherit;
-  color: #3182CE;
-  border-left: 4px solid #3182CE;
+  color: #2F78C4;
+  /* border-left: 4px solid #2F78C4; */
 }
 
 .report-card {
@@ -505,10 +508,19 @@
 .grid-value { color: #4A5568; font-size: 14px; }
 .status-marked { color: #6366F1; } /* Purple-ish color from image */
 
+.agent-icon-small {
+  width: 24px;   /* Adjust size as needed */
+  object-fit: contain;
+  display: inline-block;
+  vertical-align: middle;
+  margin-right: 7px;
+  margin-bottom: 8px;
+}
 
-
-
-
+/* Optional: If icons need to look different when the item is active */
+.sidebar-nav-item.active .agent-icon-small {
+  filter: brightness(1.2); 
+}
 
 
 /* Dropdown checkboxes css */
@@ -749,8 +761,8 @@ td, span.status-badge {
 .stream-close-x {
   background: none;
   border: none;
-  color: white;
-  font-size: 24px;
+  color: whitesmoke;
+  /* font-size: 22px; */
   cursor: pointer;
 }
 
