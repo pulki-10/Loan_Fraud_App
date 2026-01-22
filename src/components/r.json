@@ -1,0 +1,8 @@
+{
+    "statusCode": 200,
+    "headers": {
+        "Content-Type": "application/json"
+    },
+    "body": "{\n  \"applicationId\": \"LN-APP-857502\",\n  \"applicantName\": \"Jane E Doe\",\n  \"addressVerificationStatus\": \"APPROVAL\",\n  \"confidenceScore\": 0.99,\n  \"summary\": \"Exact match found in postal records.\",\n  \"fullVerificationDetails\": {\n    \"final_decision\": \"APPROVAL\",\n    \"overall_confidence_score\": 0.99,\n    \"verification_results\": [\n      {\n        \"check\": \"Postal Database Match\",\n        \"status\": \"FULL_MATCH\",\n        \"reason\": \"Exact match found in postal records.\"\n      },\n      {\n        \"check\": \"Name-Address Link (Credit/Govt.)\",\n        \"status\": \"FULL_MATCH\",\n        \"reason\": \"Customer name is strongly linked to this address in independent databases.\"\n      }\n    ]\n  }\n}"
+}
+

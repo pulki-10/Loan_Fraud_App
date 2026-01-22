@@ -1,0 +1,195 @@
+.login-container {
+  display: flex;
+  height: 100vh;
+  width: 100vw;
+  overflow: hidden; /* removes scrollbars */
+  font-family: "Inter", sans-serif;
+}
+
+.login-left {
+  flex: 1;
+  background: #fff;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  padding: 3rem;
+  box-sizing: border-box;
+  margin-bottom: 10vh;
+}
+
+.logo {
+  width: auto;
+  height: 60px;
+  object-fit: contain;
+  margin-right: 1vw;
+  margin-bottom: 2rem;
+}
+
+h2 {
+  font-size: 32px;
+  /* font-family: 'Lucida Sans', 'Lucida Sans Regular', 'Lucida Grande', 'Lucida Sans Unicode', Geneva, Verdana, sans-serif; */
+  /* font-weight: 500; */
+  margin-bottom: 3rem;
+  color: #000048;
+}
+
+.login-form {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  max-width: 400px;
+}
+
+.login-form input {
+  margin-bottom: 1rem;
+  padding: 0.75rem;
+  font-size: 1rem;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+}
+
+.login-form button {
+  padding: 0.75rem;
+  font-size: 1rem;
+  background: #000048;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background 0.3s ease;
+}
+
+.login-form button:hover {
+  background: #000048;
+}
+
+.error {
+  color: red;
+  margin-top: 0.5rem;
+}
+
+.signup-text {
+  color: #000048;
+  margin-top: 1rem;
+  font-size: 0.9rem;
+}
+
+.signup-text a {
+  color: #00008b;
+  text-decoration: none;
+  font-weight: bold;
+}
+
+.login-right {
+  flex: 1;
+  background: url("./assets/cybercrime.jpg") no-repeat right center;
+  background-size: cover;
+  height: 100%;
+  /* background-position: calc(100% + (-10px)) center;  */
+}
+
+.admin-user-checkbox-container {
+  /* font-family: popper, sans-serif; */
+  color: #000048;
+  padding: 5px;
+  /* margin-bottom: 10px; */
+}
+
+#admin-user-checkbox {
+  margin-right: 5px;
+  transform: scale(1.1);
+  /* margin-bottom: 5px ; */
+}
+
+#login-details {
+  color: #97999b;
+  font-size: 14px;
+}
+
+.password-wrapper {
+  position: relative;
+  width: 100%;
+}
+
+.password-input {
+  width: 100%;
+  padding-right: 40px; /* space for the eye icon */
+  box-sizing: border-box;
+}
+
+.eye-icon {
+  position: absolute;
+  right: 10px;
+  top: 40%;
+  transform: translateY(-50%);
+  width: 20px;
+  height: 20px;
+  cursor: pointer;
+}
+
+/* OTP Input Container */
+
+.otp-container {
+  display: flex;
+  /* justify-content: center; */
+  flex-direction: column;
+  align-items: center;
+  margin: 1.5rem 0;
+
+  gap: 10px;
+}
+
+.otp-inputs {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+}
+
+/* Each OTP Box */
+
+.otp-input {
+  width: 50px;
+
+  height: 50px;
+
+  text-align: center;
+
+  font-size: 1.25rem;
+
+  border: 1px solid #ccc;
+
+  border-radius: 8px;
+
+  outline: none;
+
+  transition: all 0.2s ease;
+
+  font-family: "Inter", sans-serif;
+
+  color: #000048;
+}
+
+/* Focus Effect */
+
+.otp-input:focus {
+  border-color: #000048;
+  box-shadow: 0 0 4px rgba(0, 0, 72, 0.3);
+}
+
+.otp-submit-button {
+  margin-top: 2vh;
+  cursor: pointer;
+  /* margin-right: 15vw;   */
+  padding: 10px 20px;
+  font-size: 1rem;
+  background: #a0a0ad;
+  border-radius: 6px;
+  color: white;
+  border: none;
+  transition: background 0.3s ease;
+}
+
+.otp-submit-button:hover {
+  background: #000048;
+}
