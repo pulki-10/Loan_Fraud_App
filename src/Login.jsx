@@ -1,8 +1,11 @@
-import React, { useState, useRef } from "react";
+import React, { useState, useRef , useEffect} from "react";
 import "./Login.css";
 import cognizantLogo from "./assets/cognizant-logo.png";
 import eyeIcon from "./assets/eye-hide.png";
 import { useNavigate } from "react-router-dom";
+import  {useDEXAgent} from '../src/context/useDEXAgent';
+import { v4 as uuidv4 } from 'uuid';
+
 import {
   signIn,
   signOut,
@@ -18,6 +21,13 @@ export default function LoginPage() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [resendMessage, setResendMessage] = useState(""); // 💡 NEW STATE for resend status
+  const { collectDEXData } = useDEXAgent(); // DEX Agent Hook
+
+  useEffect(() => {
+  if (!sessionStorage.getItem("dex_session_id")) {
+    sessionStorage.setItem("dex_session_id", `session-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`);
+  }
+}, []);
 
   // MFA OTP UI
   const [showOTP, setShowOTP] = useState(false);
@@ -32,11 +42,38 @@ export default function LoginPage() {
     setLoading(true);
     setError("");
     setResendMessage(""); // Clear resend message on new login attempt
+    const sessionId = sessionStorage.getItem("dex_session_id");
 
     try {
       await signOut();
+      const dexPayload = await collectDEXData();
+
+      const finalPayload = {
+        stage: "LOGIN",         
+        session_id: sessionId,    
+        email: email,     
+      
+        ...dexPayload ,
+
+      };
+      const dexResponse = await fetch("https://deb5xke9pl.execute-api.us-west-2.amazonaws.com/DEXPROD1/analyze", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(finalPayload),
+      });
+      const dexResult = await dexResponse.json();
+      console.log("DEX Login Analysis:", dexResult);
+
+      // 3. Logic based on Trust Score
+      if (dexResult.dex_report && dexResult.dex_report.trust_score < 0.3) {
+        setError("Security Risk: Device or Network flagged.");
+        setLoading(false);
+        return; // Block login if high risk
+      }
+
     } catch (err) {
       console.warn("No user was signed in", err);
+      console.warn("DEX Agent failed, proceeding with standard auth", err);
     }
 
     try {

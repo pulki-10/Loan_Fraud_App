@@ -245,7 +245,6 @@ const DescriptionBox = () => {
       });
     }, currentDelay);
 
-    /////////////////////////////////////////////////////////////
     const apiUrl2 =
       // "https://uy0uil31b8.execute-api.us-west-2.amazonaws.com/FL_sn/FL_rn";
       "https://uy0uil31b8.execute-api.us-west-2.amazonaws.com/FL_sn/FL_rn";

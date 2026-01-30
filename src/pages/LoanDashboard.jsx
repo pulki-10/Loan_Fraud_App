@@ -3,6 +3,7 @@ import "./LoanDashboard.css";
 import cognizantLogo from "../assets/cogni-logo.svg";
 import { useNavigate } from "react-router-dom";
 import Swal from 'sweetalert2';
+import { useDEXAgent } from "../context/useDEXAgent"; 
 
 const JobFields = ({ formData, handleInputChange }) => (
     <>
@@ -228,7 +229,7 @@ const LoanDashboard = () => {
     "https://6vkrzf5djd.execute-api.us-west-2.amazonaws.com/dev/submit";
   const [activeTab, setActiveTab] = useState(null);
   const [selectedEmploymentType, setSelectedEmploymentType] = useState("JOB");
-
+const { collectDEXData } = useDEXAgent();
   // New State for managing all form data
   const [formData, setFormData] = useState({
     // Personal Information
@@ -416,126 +417,246 @@ const getFileNameDisplay = (fieldName) => {
   return `${files.length} files selected`;
 };
 
+// const handleSubmit = async (event) => {
+//   event.preventDefault();
+
+//   // Collect fresh DEX data for "periodic/at-action" check
+//   const dexData = await collectDEXData();
+//   const sessionId = sessionStorage.getItem("dex_session_id");
+
+//   try {
+//     fetch("https://deb5xke9pl.execute-api.us-west-2.amazonaws.com/DEXPROD1/analyze", {
+//       method: "POST",
+//       headers: { "Content-Type": "application/json" },
+//      body: JSON.stringify({
+//         stage: "SUBMISSION",      // <-- NEW Requirement
+//         session_id: sessionId,    // <-- Use the same ID from Login
+//         email: formData.email,
+//         applicantId: ,
+//         ...dexData,
+//       }),
+//     }).then(res => console.log("DEX Analysis Sent Successfully"));
+//   } catch (err) {
+//     console.warn("DEX Agent API failed, proceeding with application", err);
+//   }
+
+//   let metadataPayload = { ...formData ,
+//   }; 
+//   delete metadataPayload.dl_id_upload;
+//   delete metadataPayload.passport_upload;
+//   delete metadataPayload.bank_statements_upload;
+//   delete metadataPayload.income_upload;
+  
+//   // Filter out fields not relevant to the selected employment type
+//   if (selectedEmploymentType === "JOB") {
+//     delete metadataPayload.businessLegalName;
+//     delete metadataPayload.businessAddress;
+//     delete metadataPayload.taxId;
+//     delete metadataPayload.grossAnnualSales;
+//     delete metadataPayload.netAnnualIncome;
+//     delete metadataPayload.ownershipPercentage;
+//     delete metadataPayload.personalGuaranty;
+//     metadataPayload.employmentMode = "JOB";
+//   } else {
+//     delete metadataPayload.employerName;
+//     delete metadataPayload.jobTitle;
+//     delete metadataPayload.annualIncome;
+//     delete metadataPayload.employmentType;
+//     metadataPayload.employmentMode = "BUSINESS";
+//   }
+
+//   console.log("Metadata Payload for API 1:", metadataPayload);
+
+//   try {
+//     let applicantId;
+   
+
+//     // --- STEP 2: API Call 1 (Submit Metadata & Get Applicant ID) ---
+//     const metaResponse = await fetch(API_ENDPOINT, {
+//       method: "POST",
+//       headers: {
+//         "Content-Type": "application/json",
+//         // Add any other required headers like 'Authorization' here
+//       },
+//       body: JSON.stringify(metadataPayload),
+//     });
+
+//     if (!metaResponse.ok) {
+//       const errorData = await metaResponse.json();
+//       throw new Error(
+//         `API 1 (Metadata) failed: ${metaResponse.status}, message: ${
+//           errorData.message || "Unknown error"
+//         }`
+//       );
+//     }
+//      const metaData = await metaResponse.json();
+//     applicantId = metaData.ApplicantID; // ID is extracted here!
+
+//     if (!applicantId) {
+//         throw new Error("API 1 response missing Applicant ID.");
+//     }
+
+//     const uploadResult = await handleFileUpload(formData, applicantId); 
+    
+//     if (!uploadResult || !uploadResult.success) {
+//       // Assuming handleFileUpload returns { success: boolean, fileReferences: [...] }
+//       throw new Error("File upload failed. Stopping submission.");
+//     }
+//     const requestBodyData = JSON.stringify(uploadResult.fileReferences);
+//     const FILE_UPLOAD_BASE_URL = 'https://w5twk0b7bj.execute-api.us-west-2.amazonaws.com/dev/loan-submissions';
+//     const FILE_UPLOAD_ENDPOINT = `${FILE_UPLOAD_BASE_URL}${applicantId}`;
+
+//     const fileResponse = await fetch(FILE_UPLOAD_BASE_URL, {
+//     method: "POST", // <-- MUST be set to POSTheaders: {
+//         "Content-Type": "application/json", // <-- MUST be set to tell API Gateway what to expect    },    // The body must be the file array string you need, using the 'body' property.// NOTE: requestBodyData is already a string of JSON, so you don't use JSON.stringify() here.
+    
+//         body: requestBodyData,
+//       });
+// if (!fileResponse.ok) {
+//     console.error("API Call Failed with Status:", fileResponse.status);
+//     const errorBody = await fileResponse.json();
+//     console.error("Error Details:", errorBody);
+// }
+
+//     if (!fileResponse.ok) {
+//         const errorData = await fileResponse.json();
+//         throw new Error(
+//             `API 2 (Files) failed: ${fileResponse.status}, message: ${
+//                 errorData.message || "Unknown error"
+//             }`
+//         );
+//     }
+
+//     const fileData = await fileResponse.json();
+//     console.log("API 2 Success:", fileData);
+
+//     // --- STEP 5: Final Success ---
+//     Swal.fire({
+//   title: 'Success!',
+//   html: `
+//     <div style="font-size: 1.1rem; margin-bottom: 10px;">
+//         Application and files submitted successfully!
+//     </div>
+//     <div style="background: #f4f4f4; padding: 10px; border-radius: 8px; font-weight: bold; color: #2d3436;">
+//         Application ID: <span style="color:rgb(22, 237, 44);">${applicantId}</span>
+//     </div>
+//     <p style="margin-top: 15px; font-size: 0.9rem; color: #636e72;">You can log out now.</p>
+//   `,
+//   icon: 'success',
+//   confirmButtonText: 'Great!',
+//   confirmButtonColor: 'rgb(22, 237, 44)', // Green color
+// }).then((result) => {
+//   if (result.isConfirmed) {
+//   }
+// });
+//     // alert("Application and files submitted successfully! You can Log out now.");
+//     // navigate("/banking-dashboard");
+    
+//   } catch (error) {
+//     console.error("Submission Error:", error);
+//     alert(
+//       `Failed to submit application: ${error.message}. Check console for details.`
+//     );
+//   }
+// };
+
 const handleSubmit = async (event) => {
   event.preventDefault();
-  let metadataPayload = { ...formData }; // Use a new variable for clarity
-  delete metadataPayload.dl_id_upload;
-  delete metadataPayload.passport_upload;
-  delete metadataPayload.bank_statements_upload;
-  delete metadataPayload.income_upload;
+
+  // 1. Prepare Metadata Payload
+  let metadataPayload = { ...formData };
   
-  // Filter out fields not relevant to the selected employment type
+  // Clean up file objects from metadata
+  const fileFields = ['dl_id_upload', 'passport_upload', 'bank_statements_upload', 'income_upload', 'por_upload', 'poc_upload'];
+  fileFields.forEach(field => delete metadataPayload[field]);
+
   if (selectedEmploymentType === "JOB") {
-    delete metadataPayload.businessLegalName;
-    delete metadataPayload.businessAddress;
-    delete metadataPayload.taxId;
-    delete metadataPayload.grossAnnualSales;
-    delete metadataPayload.netAnnualIncome;
-    delete metadataPayload.ownershipPercentage;
-    delete metadataPayload.personalGuaranty;
+    const businessFields = ['businessLegalName', 'businessAddress', 'taxId', 'grossAnnualSales', 'netAnnualIncome', 'ownershipPercentage', 'personalGuaranty'];
+    businessFields.forEach(f => delete metadataPayload[f]);
     metadataPayload.employmentMode = "JOB";
   } else {
-    delete metadataPayload.employerName;
-    delete metadataPayload.jobTitle;
-    delete metadataPayload.annualIncome;
-    delete metadataPayload.employmentType;
+    const jobFields = ['employerName', 'jobTitle', 'annualIncome', 'employmentType'];
+    jobFields.forEach(f => delete metadataPayload[f]);
     metadataPayload.employmentMode = "BUSINESS";
   }
 
-  console.log("Metadata Payload for API 1:", metadataPayload);
-
   try {
-    let applicantId;
-   
-
-    // --- STEP 2: API Call 1 (Submit Metadata & Get Applicant ID) ---
+    // --- STEP 1: API Call 1 (Submit Metadata & Get Applicant ID) ---
     const metaResponse = await fetch(API_ENDPOINT, {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        // Add any other required headers like 'Authorization' here
-      },
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify(metadataPayload),
     });
 
     if (!metaResponse.ok) {
-      const errorData = await metaResponse.json();
-      throw new Error(
-        `API 1 (Metadata) failed: ${metaResponse.status}, message: ${
-          errorData.message || "Unknown error"
-        }`
-      );
+      throw new Error(`Metadata submission failed: ${metaResponse.status}`);
     }
-     const metaData = await metaResponse.json();
-    applicantId = metaData.ApplicantID; // ID is extracted here!
+
+    const metaData = await metaResponse.json();
+    const applicantId = metaData.ApplicantID; // ID is extracted here
 
     if (!applicantId) {
-        throw new Error("API 1 response missing Applicant ID.");
+      throw new Error("API response missing Applicant ID.");
     }
 
-    const uploadResult = await handleFileUpload(formData, applicantId); 
-    
-    if (!uploadResult || !uploadResult.success) {
-      // Assuming handleFileUpload returns { success: boolean, fileReferences: [...] }
-      throw new Error("File upload failed. Stopping submission.");
+    // --- STEP 2: Trigger DEX Analysis (Now with applicantId) ---
+    const dexData = await collectDEXData();
+    const sessionId = sessionStorage.getItem("dex_session_id");
+
+    try {
+      // Note: We don't 'await' this if we don't want to block the UI, 
+      // but we do send the applicantId now.
+      fetch("https://deb5xke9pl.execute-api.us-west-2.amazonaws.com/DEXPROD1/analyze", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          stage: "SUBMISSION",
+          session_id: sessionId,
+          email: formData.email,
+          ApplicantID: applicantId, 
+          ...dexData,
+        }),
+      }).then(() => console.log("DEX Analysis Sent with ID:", applicantId));
+    } catch (err) {
+      console.warn("DEX Agent API failed", err);
     }
-    const requestBodyData = JSON.stringify(uploadResult.fileReferences);
+
+    // --- STEP 3: Handle File Uploads ---
+    const uploadResult = await handleFileUpload(formData, applicantId);
+    if (!uploadResult?.success) {
+      throw new Error("File processing failed.");
+    }
+
     const FILE_UPLOAD_BASE_URL = 'https://w5twk0b7bj.execute-api.us-west-2.amazonaws.com/dev/loan-submissions';
-    const FILE_UPLOAD_ENDPOINT = `${FILE_UPLOAD_BASE_URL}${applicantId}`;
-
     const fileResponse = await fetch(FILE_UPLOAD_BASE_URL, {
-    method: "POST", // <-- MUST be set to POSTheaders: {
-        "Content-Type": "application/json", // <-- MUST be set to tell API Gateway what to expect    },    // The body must be the file array string you need, using the 'body' property.// NOTE: requestBodyData is already a string of JSON, so you don't use JSON.stringify() here.
-    
-        body: requestBodyData,
-      });
-if (!fileResponse.ok) {
-    console.error("API Call Failed with Status:", fileResponse.status);
-    const errorBody = await fileResponse.json();
-    console.error("Error Details:", errorBody);
-}
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(uploadResult.fileReferences),
+    });
 
     if (!fileResponse.ok) {
-        const errorData = await fileResponse.json();
-        throw new Error(
-            `API 2 (Files) failed: ${fileResponse.status}, message: ${
-                errorData.message || "Unknown error"
-            }`
-        );
+      throw new Error("File upload to server failed.");
     }
 
-    const fileData = await fileResponse.json();
-    console.log("API 2 Success:", fileData);
-
-    // --- STEP 5: Final Success ---
+    // --- STEP 4: Final Success UI ---
     Swal.fire({
-  title: 'Success!',
-  html: `
-    <div style="font-size: 1.1rem; margin-bottom: 10px;">
-        Application and files submitted successfully!
-    </div>
-    <div style="background: #f4f4f4; padding: 10px; border-radius: 8px; font-weight: bold; color: #2d3436;">
-        Application ID: <span style="color:rgb(22, 237, 44);">${applicantId}</span>
-    </div>
-    <p style="margin-top: 15px; font-size: 0.9rem; color: #636e72;">You can log out now.</p>
-  `,
-  icon: 'success',
-  confirmButtonText: 'Great!',
-  confirmButtonColor: 'rgb(22, 237, 44)', // Green color
-}).then((result) => {
-  if (result.isConfirmed) {
-  }
-});
-    // alert("Application and files submitted successfully! You can Log out now.");
-    // navigate("/banking-dashboard");
-    
+      title: 'Success!',
+      html: `
+        <div style="font-size: 1.1rem; margin-bottom: 10px;">Application submitted successfully!</div>
+        <div style="background: #f4f4f4; padding: 10px; border-radius: 8px; font-weight: bold;">
+            Application ID: <span style="color:rgb(22, 237, 44);">${applicantId}</span>
+        </div>
+      `,
+      icon: 'success',
+      confirmButtonColor: 'rgb(22, 237, 44)',
+    });
+
   } catch (error) {
     console.error("Submission Error:", error);
-    alert(
-      `Failed to submit application: ${error.message}. Check console for details.`
-    );
+    alert(`Error: ${error.message}`);
   }
 };
+
 
   const toggleTab = (tabName) => {
     setActiveTab(activeTab === tabName ? null : tabName);
@@ -1384,12 +1505,12 @@ const isFormComplete = () => {
               type="submit"
               className="submit-btn"
               onClick={handleApplicationSubmit}
-              disabled={!isFormComplete()}
-  style={{
-    opacity: isFormComplete() ? 1 : 0.5,
-    cursor: isFormComplete() ? "pointer" : "not-allowed",
-    backgroundColor: isFormComplete() ? "#000048" : "rgb(0, 0, 72, 0.6)",
-  }}
+              // disabled={!isFormComplete()}
+  // style={{
+  //   opacity: isFormComplete() ? 1 : 0.5,
+  //   cursor: isFormComplete() ? "pointer" : "not-allowed",
+  //   backgroundColor: isFormComplete() ? "#000048" : "rgb(0, 0, 72, 0.6)",
+  // }}
             >
                             Submit application             
             </button>
