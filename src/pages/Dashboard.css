@@ -243,14 +243,35 @@
     padding: 4px 8px;
     border-radius: 6px;
     font-weight: bold;
-    font-size: 12px;
+    font-size: 13px;
     text-align: center;
     min-width: 70px;
+    /* gap: 1px;
+     display: flex; */
 }
 
 .status-approved {
   font-weight:  600;
     color: #00C951;
+    display: inline-flex;
+    align-items: center; /* This centers them vertically */
+    line-height: 1;      /* Prevents extra tall text boxes from throwing off the icon */
+    gap: 8px;
+}
+
+.status-approved::after {
+  /* margin-top: 25px; */
+    content: "";
+    display: inline-block;
+    width: 18px;  /* Adjust size as needed */
+    height: 18px; /* Adjust size as needed */
+   background-image: url('../assets/Approve.png'); /* Update with your actual path and filename */
+   /* mask-image: url('../assets/Approve.png'); */
+    /* -webkit-mask-size: contain; */
+    /* mask-size: contain; */
+    background-size: contain;
+    background-repeat: no-repeat;
+    filter: brightness(0.7) saturate(2.0); /* Adjust these numbers to pop the color */
 }
 
 .status-pending {
@@ -259,7 +280,26 @@
 }
 
 .status-rejected {
-    color: #B81F2D
+    color: #B81F2D;
+        display: inline-flex;
+    align-items: center; /* This centers them vertically */
+    line-height: 1;      /* Prevents extra tall text boxes from throwing off the icon */
+    gap: 8px;
+}
+
+.status-rejected::after {
+    content: "";
+    display: inline-block;
+    width: 18px;  /* Adjust size as needed */
+    height: 18px; /* Adjust size as needed */
+   background-image: url('../assets/Rejected-cross.png'); /* Update with your actual path and filename */
+   /* mask-image: url('../assets/Approve.png'); */
+    /* -webkit-mask-size: contain; */
+    /* mask-size: contain; */
+    background-size: contain;
+    background-repeat: no-repeat;
+    filter: brightness(0.8) saturate(8.0); /* Adjust these numbers to pop the color */
+
 }
 
 /* --- Review Icon Styling (Eye Icon) --- */

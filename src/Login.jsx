@@ -43,6 +43,7 @@ export default function LoginPage() {
     setError("");
     setResendMessage(""); // Clear resend message on new login attempt
     const sessionId = sessionStorage.getItem("dex_session_id");
+    console.log("Starting login with session ID:", sessionId);
 
     try {
       await signOut();

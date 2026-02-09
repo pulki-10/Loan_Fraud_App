@@ -352,6 +352,7 @@ const handleFileUpload = async (formData, applicantId) => {
 
   const [suggestions, setSuggestions] = useState([]);
     const sessionId = sessionStorage.getItem("dex_session_id");
+    console.log("Current Session ID in LoanDashboard:", sessionId);
 
   const handleInputChange = async (event) => {
   const { name, value } = event.target;
