@@ -224,11 +224,64 @@ const JobFields = ({ formData, handleInputChange }) => (
     </>
   );
 
+  
+
 const LoanDashboard = () => {
   const API_ENDPOINT =
     "https://6vkrzf5djd.execute-api.us-west-2.amazonaws.com/dev/submit";
   const [activeTab, setActiveTab] = useState(null);
   const [selectedEmploymentType, setSelectedEmploymentType] = useState("JOB");
+
+  const biometricData = useRef({ keystrokes: [], mouseMoves: [] });
+
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (e.target.tagName === 'INPUT') {
+        biometricData.current.keystrokes.push({
+          field: e.target.id,
+          key: e.key,
+          type: 'down',
+          time: Date.now()
+        });
+      }
+    };
+
+    const handleKeyUp = (e) => {
+      if (e.target.tagName === 'INPUT') {
+        biometricData.current.keystrokes.push({
+          field: e.target.id,
+          key: e.key,
+          type: 'up',
+          time: Date.now()
+        });
+      }
+    };
+
+    const handleMouseMove = (e) => {
+      // Throttle: only log every 10th move to keep the payload lean
+      if (biometricData.current.mouseMoves.length % 10 === 0) {
+        biometricData.current.mouseMoves.push({
+          x: e.clientX,
+          y: e.clientY,
+          time: Date.now()
+        });
+      }
+    };
+
+    // Attach to document to catch events even as inputs are swapped (Job vs Business)
+    document.addEventListener('keydown', handleKeyDown);
+    document.addEventListener('keyup', handleKeyUp);
+    document.addEventListener('mousemove', handleMouseMove);
+
+    return () => {
+      // Cleanup on unmount
+      document.removeEventListener('keydown', handleKeyDown);
+      document.removeEventListener('keyup', handleKeyUp);
+      document.removeEventListener('mousemove', handleMouseMove);
+    };
+  }, []);
+
+
 const { collectDEXData } = useDEXAgent();
   // New State for managing all form data
   const [formData, setFormData] = useState({
@@ -298,6 +351,8 @@ const handleFileUpload = async (formData, applicantId) => {
 };
 
   const [suggestions, setSuggestions] = useState([]);
+    const sessionId = sessionStorage.getItem("dex_session_id");
+
   const handleInputChange = async (event) => {
   const { name, value } = event.target;
 
@@ -354,7 +409,7 @@ if (name === "streetAddress" && value.length > 3) {
   const MAX_LIMIT = 50000000;
 
   // This Regex removes anything that is NOT a digit (0-9)
-  const onlyNums = value.replace(/\D/g, '');
+  let onlyNums = value.replace(/\D/g, '');
 
   if (onlyNums !== '') {
     const numValue = parseInt(onlyNums, 10);
@@ -368,6 +423,12 @@ if (name === "streetAddress" && value.length > 3) {
     ...formData,
     [name]: onlyNums
   });
+};
+
+// Add this to handle the checkbox in BusinessFields
+const handleCheckboxChange = (e) => {
+  const { name, checked } = e.target;
+  setFormData(prev => ({ ...prev, [name]: checked }));
 };
 
   // Handler for employment type radio button changes
@@ -417,154 +478,12 @@ const getFileNameDisplay = (fieldName) => {
   return `${files.length} files selected`;
 };
 
-// const handleSubmit = async (event) => {
-//   event.preventDefault();
-
-//   // Collect fresh DEX data for "periodic/at-action" check
-//   const dexData = await collectDEXData();
-//   const sessionId = sessionStorage.getItem("dex_session_id");
-
-//   try {
-//     fetch("https://deb5xke9pl.execute-api.us-west-2.amazonaws.com/DEXPROD1/analyze", {
-//       method: "POST",
-//       headers: { "Content-Type": "application/json" },
-//      body: JSON.stringify({
-//         stage: "SUBMISSION",      // <-- NEW Requirement
-//         session_id: sessionId,    // <-- Use the same ID from Login
-//         email: formData.email,
-//         applicantId: ,
-//         ...dexData,
-//       }),
-//     }).then(res => console.log("DEX Analysis Sent Successfully"));
-//   } catch (err) {
-//     console.warn("DEX Agent API failed, proceeding with application", err);
-//   }
-
-//   let metadataPayload = { ...formData ,
-//   }; 
-//   delete metadataPayload.dl_id_upload;
-//   delete metadataPayload.passport_upload;
-//   delete metadataPayload.bank_statements_upload;
-//   delete metadataPayload.income_upload;
-  
-//   // Filter out fields not relevant to the selected employment type
-//   if (selectedEmploymentType === "JOB") {
-//     delete metadataPayload.businessLegalName;
-//     delete metadataPayload.businessAddress;
-//     delete metadataPayload.taxId;
-//     delete metadataPayload.grossAnnualSales;
-//     delete metadataPayload.netAnnualIncome;
-//     delete metadataPayload.ownershipPercentage;
-//     delete metadataPayload.personalGuaranty;
-//     metadataPayload.employmentMode = "JOB";
-//   } else {
-//     delete metadataPayload.employerName;
-//     delete metadataPayload.jobTitle;
-//     delete metadataPayload.annualIncome;
-//     delete metadataPayload.employmentType;
-//     metadataPayload.employmentMode = "BUSINESS";
-//   }
-
-//   console.log("Metadata Payload for API 1:", metadataPayload);
-
-//   try {
-//     let applicantId;
-   
-
-//     // --- STEP 2: API Call 1 (Submit Metadata & Get Applicant ID) ---
-//     const metaResponse = await fetch(API_ENDPOINT, {
-//       method: "POST",
-//       headers: {
-//         "Content-Type": "application/json",
-//         // Add any other required headers like 'Authorization' here
-//       },
-//       body: JSON.stringify(metadataPayload),
-//     });
-
-//     if (!metaResponse.ok) {
-//       const errorData = await metaResponse.json();
-//       throw new Error(
-//         `API 1 (Metadata) failed: ${metaResponse.status}, message: ${
-//           errorData.message || "Unknown error"
-//         }`
-//       );
-//     }
-//      const metaData = await metaResponse.json();
-//     applicantId = metaData.ApplicantID; // ID is extracted here!
-
-//     if (!applicantId) {
-//         throw new Error("API 1 response missing Applicant ID.");
-//     }
-
-//     const uploadResult = await handleFileUpload(formData, applicantId); 
-    
-//     if (!uploadResult || !uploadResult.success) {
-//       // Assuming handleFileUpload returns { success: boolean, fileReferences: [...] }
-//       throw new Error("File upload failed. Stopping submission.");
-//     }
-//     const requestBodyData = JSON.stringify(uploadResult.fileReferences);
-//     const FILE_UPLOAD_BASE_URL = 'https://w5twk0b7bj.execute-api.us-west-2.amazonaws.com/dev/loan-submissions';
-//     const FILE_UPLOAD_ENDPOINT = `${FILE_UPLOAD_BASE_URL}${applicantId}`;
-
-//     const fileResponse = await fetch(FILE_UPLOAD_BASE_URL, {
-//     method: "POST", // <-- MUST be set to POSTheaders: {
-//         "Content-Type": "application/json", // <-- MUST be set to tell API Gateway what to expect    },    // The body must be the file array string you need, using the 'body' property.// NOTE: requestBodyData is already a string of JSON, so you don't use JSON.stringify() here.
-    
-//         body: requestBodyData,
-//       });
-// if (!fileResponse.ok) {
-//     console.error("API Call Failed with Status:", fileResponse.status);
-//     const errorBody = await fileResponse.json();
-//     console.error("Error Details:", errorBody);
-// }
-
-//     if (!fileResponse.ok) {
-//         const errorData = await fileResponse.json();
-//         throw new Error(
-//             `API 2 (Files) failed: ${fileResponse.status}, message: ${
-//                 errorData.message || "Unknown error"
-//             }`
-//         );
-//     }
-
-//     const fileData = await fileResponse.json();
-//     console.log("API 2 Success:", fileData);
-
-//     // --- STEP 5: Final Success ---
-//     Swal.fire({
-//   title: 'Success!',
-//   html: `
-//     <div style="font-size: 1.1rem; margin-bottom: 10px;">
-//         Application and files submitted successfully!
-//     </div>
-//     <div style="background: #f4f4f4; padding: 10px; border-radius: 8px; font-weight: bold; color: #2d3436;">
-//         Application ID: <span style="color:rgb(22, 237, 44);">${applicantId}</span>
-//     </div>
-//     <p style="margin-top: 15px; font-size: 0.9rem; color: #636e72;">You can log out now.</p>
-//   `,
-//   icon: 'success',
-//   confirmButtonText: 'Great!',
-//   confirmButtonColor: 'rgb(22, 237, 44)', // Green color
-// }).then((result) => {
-//   if (result.isConfirmed) {
-//   }
-// });
-//     // alert("Application and files submitted successfully! You can Log out now.");
-//     // navigate("/banking-dashboard");
-    
-//   } catch (error) {
-//     console.error("Submission Error:", error);
-//     alert(
-//       `Failed to submit application: ${error.message}. Check console for details.`
-//     );
-//   }
-// };
-
 const handleSubmit = async (event) => {
   event.preventDefault();
 
   // 1. Prepare Metadata Payload
-  let metadataPayload = { ...formData };
+  let metadataPayload = { ...formData, session_id: sessionId,
+    biometrics: biometricData.current};
   
   // Clean up file objects from metadata
   const fileFields = ['dl_id_upload', 'passport_upload', 'bank_statements_upload', 'income_upload', 'por_upload', 'poc_upload'];
@@ -601,7 +520,6 @@ const handleSubmit = async (event) => {
 
     // --- STEP 2: Trigger DEX Analysis (Now with applicantId) ---
     const dexData = await collectDEXData();
-    const sessionId = sessionStorage.getItem("dex_session_id");
 
     try {
       // Note: We don't 'await' this if we don't want to block the UI, 

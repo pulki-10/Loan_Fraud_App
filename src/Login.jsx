@@ -243,18 +243,6 @@ export default function LoginPage() {
               />
             </div>
 
-            {/* <div className="admin-user-checkbox-container">
-              <label htmlFor="admin-user-checkbox">
-                <input
-                  type="checkbox"
-                  id="admin-user-checkbox"
-                  name="is_admin_user"
-                  value="true"
-                />
-                Admin user
-              </label>
-            </div> */}
-
             <button type="submit" disabled={loading}>
               {loading ? "Logging in..." : "Login"}
             </button>

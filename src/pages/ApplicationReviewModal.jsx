@@ -64,7 +64,7 @@ const ProcessStreamModal = ({ isOpen, onClose, applicantId, logs, explainableAI 
             <span className="stream-value status-completed">Completed</span>
           </div>
 
-          <div className="stream-field logs-section">
+          {/* <div className="stream-field logs-section">
             <span className="stream-label">Commentary Logs</span>
             <div className="logs-container">
               {logs?.map((log, index) => (
@@ -72,17 +72,46 @@ const ProcessStreamModal = ({ isOpen, onClose, applicantId, logs, explainableAI 
               ))}
             </div>
           </div>
-          <div>
-            <div className="stream-field xai-section">
-              <span className="stream-label">
-                Explainable AI
-              </span>
-              <div className="xai-container">
+
+           <div className="stream-field logs-section">
+            <span className="stream-label"> Explainable AI</span>
+             <div className="logs-container">
                  {explainableAI || "No reasoning available."}
               </div>
-            </div>
-          </div>
-       
+          </div> */}
+          <div className="stream-field logs-section">
+  <span className="stream-label">Commentary Logs</span>
+  <div className="logs-container">
+    {logs?.map((log, index) => (
+      <div key={index} className="log-entry">{log}</div>
+    ))}
+  </div>
+</div>
+
+{/* Updated XAI Section */}
+{/* <div className="stream-field logs-section">
+  <span className="stream-label">Explainable AI</span>
+  <div className="logs-container">
+    <div className="log-entry xai-content">
+      {explainableAI || "No reasoning available."}
+    </div>
+  </div>
+</div> */}
+<div className="stream-field logs-section">
+  <span className="stream-label">Explainable AI</span>
+  <div className="logs-container">
+    <div className="log-entry xai-content">
+      {Array.isArray(explainableAI) ? (
+        explainableAI.map((line, idx) => (
+          <div key={idx} style={{ marginBottom: '4px' }}>{line}</div>
+        ))
+      ) : (
+        explainableAI || "No reasoning available."
+      )}
+    </div>
+  </div>
+</div>
+
         </div>
       </div>
     </div>
@@ -95,114 +124,94 @@ const ApplicationReviewModal = ({ isOpen, onClose, appData }) => {
   const [loading, setLoading] = useState(false);
   const [activeTab, setActiveTab] = useState('KYC_Agent');
   
-  // Use a Ref to track if we've already fetched for this specific ID
   const fetchedIdRef = useRef(null);
 
-  // useEffect(() => {
-  //   const fetchData = async () => {
-  //     // 1. Only fetch if the modal is open
-  //     // 2. Only fetch if we have an ID
-  //     // 3. Only fetch if we haven't already fetched for THIS specific ID
-  //     if (!isOpen || !appData?.id || fetchedIdRef.current === appData.id) return;
-
-  //     setLoading(true);
-  //     fetchedIdRef.current = appData.id; // Mark this ID as "in-flight" or "fetched"
-
-  //     try {
-  //       const response1 = await fetch("https://iwbe2d6db7.execute-api.us-west-2.amazonaws.com/dev/verify", {
-  //         method: 'POST',
-  //         headers: { 'Content-Type': 'application/json' },
-  //         body: JSON.stringify({ "ApplicantID": appData.id }),
-  //       });
-
-  //       if (!response1.ok) {
-  //         throw new Error(`API Error ${response1.status}`);
-  //       }
-
-  //       const data1 = await response1.json();
-  //       setApiData(data1);
-  //     } catch (error) {
-  //       console.error("Fetch operation failed:", error.message);
-  //       fetchedIdRef.current = null; // Reset on error so user can retry
-  //     } finally {
-  //       setLoading(false);
-  //     }
-  //   };
-
-  //   fetchData();
-
-  //   // Reset when modal closes so it can refresh next time it opens for a new applicant
-  //   if (!isOpen) {
-  //     setApiData(null);
-  //     fetchedIdRef.current = null;
-  //   }
-  // }, [isOpen, appData?.id]);
-
-
-
-
   useEffect(() => {
-    const fetchData = async () => {
-      // 1. Only fetch if the modal is open
-      // 2. Only fetch if we have an ID
-      // 3. Only fetch if we haven't already fetched for THIS specific ID
-      if (!isOpen || !appData?.id || fetchedIdRef.current === appData.id) return;
+  const fetchData = async () => {
+    if (!isOpen || !appData?.id || fetchedIdRef.current === appData.id) return;
 
-      setLoading(true);
-      fetchedIdRef.current = appData.id;
+    setLoading(true);
+    fetchedIdRef.current = appData.id;
 
-      try {
-        const payload = JSON.stringify({ "ApplicantID": appData.id });
+    const payload = JSON.stringify({ "ApplicantID": appData.id });
 
-        // Triggering both APIs simultaneously
-        const [responseVerify, responseConsolidated] = await Promise.all([
-          fetch("https://iwbe2d6db7.execute-api.us-west-2.amazonaws.com/dev/verify", {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: payload,
-          }),
-          fetch("https://indk5ueh3f.execute-api.us-west-2.amazonaws.com/DEX_APPNO/consolidated-report", {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: payload,
-          })
-        ]);
+    try {
+      // Use allSettled so one failure doesn't stop the others
+      const results = await Promise.allSettled([
+        fetch("https://iwbe2d6db7.execute-api.us-west-2.amazonaws.com/dev/verify", {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: payload,
+        }),
+        fetch("https://indk5ueh3f.execute-api.us-west-2.amazonaws.com/DEX_APPNO/consolidated-report", {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: payload,
+        }),
+        fetch('https://4ydeedvof2.execute-api.us-west-2.amazonaws.com/prod/bagent', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: payload,
+        })
+      ]);
 
-        if (!responseVerify.ok || !responseConsolidated.ok) {
-          throw new Error(`API Error: Verify(${responseVerify.status}) or Consolidated(${responseConsolidated.status})`);
-        }
+      let combinedData = {};
 
-        const dataVerify = await responseVerify.json();
-        const dataConsolidated = await responseConsolidated.json();
-
-        // Update your state here
-        // If you need to store data from both APIs, you might want to merge them 
-        // or create a separate state variable for consolidatedData.
-        setApiData({ ...dataVerify, consolidated: dataConsolidated });
-
-      } catch (error) {
-        console.error("Fetch operation failed:", error.message);
-        fetchedIdRef.current = null; 
-      } finally {
-        setLoading(false);
+      // 1. Process Verify API (The one returning the array)
+      if (results[0].status === "fulfilled" && results[0].value.ok) {
+        const data = await results[0].value.json();
+        const mainData = Array.isArray(data) ? data[0] : data;
+        combinedData = { ...combinedData, ...mainData };
+        // console.log("Verify Data Loaded:", mainData);
+      } else {
+        console.error("Verify API failed or was rejected");
       }
-    };
 
-    fetchData();
+      // 2. Process Consolidated API
+      if (results[1].status === "fulfilled" && results[1].value.ok) {
+        const data = await results[1].value.json();
+        combinedData.consolidated = data;
+        console.log("Consolidated Data Loaded:", data);
+      } else {
+        console.warn("Consolidated API failed - UI will show N/A for those fields");
+      }
 
-    if (!isOpen) {
-      setApiData(null);
-      fetchedIdRef.current = null;
+      // 3. Process Behavioral API
+      if (results[2].status === "fulfilled" && results[2].value.ok) {
+        const data = await results[2].value.json();
+        combinedData.behavioral = data;
+      }
+
+      setApiData(combinedData);
+
+    } catch (error) {
+      console.error("Critical error in fetchData:", error);
+    } finally {
+      setLoading(false);
     }
-  }, [isOpen, appData?.id]);
+  };
+
+  fetchData();
+
+  if (!isOpen) {
+    setApiData(null);
+    fetchedIdRef.current = null;
+  }
+}, [isOpen, appData?.id]);
 
   if (!isOpen) return null;
 
   const addressReport = apiData?.["Address Agent"];
+  // console.log("Address Report:", addressReport);
+  // console.log("API Data:", apiData);
   const kycReport = apiData?.["KYC Agent"];
-  const dexReport = apiData?.consolidated?.dex_report;
-  const logs = activeTab === 'DelegationAgent' ? dexReport?.Live_Logs : apiData?.["Live Logs"];
-  const explainableAI = activeTab === 'DelegationAgent' ? dexReport?.XAI_Reasoning?.join(' ') : apiData?.["XAI reasoning"];
+  // console.log("KYC Report:", kycReport);
+const dexReport = apiData?.consolidated;
+ const rawLogs = activeTab === 'DelegationAgent' ? dexReport?.intelligence?.live_logs : apiData?.["Live Logs"];
+const logs = rawLogs?.map(log => log.replace(/^\u2022\s*/, ''));
+const explainableAI = activeTab === 'DelegationAgent' 
+  ? dexReport?.intelligence?.xai_summary 
+  : apiData?.["XAI reasoning"];
 
   const getActiveAgentInfo = () => {
   switch (activeTab) {
@@ -264,44 +273,101 @@ const activeAgent = getActiveAgentInfo();
                     <div className="report-table">
                       <div className="report-row">
                         <div className="report-label">Risk Level</div>
-                        <div className={`report-value ${dexReport?.risk_level === 'LOW' ? 'status-review' : 'status-fraud'}`}>
-                          {dexReport?.risk_level || "N/A"}
-                        </div>
+                    <div className={`report-value ${dexReport?.risk_assessment?.level === 'SAFE' ? 'status-review' : 'status-fraud'}`}>
+          {dexReport?.risk_assessment?.level || "N/A"}
+        </div>
                       </div>
-                      <div className="report-row">
-                        <div className="report-label">Confidence Score</div>
-                        <div className="report-value">{dexReport?.confidence_score}</div>
-                      </div>
-                      <div className="report-row">
-                        <div className="report-label">Session ID</div>
-                        <div className="report-value">{dexReport?.session_id}</div>
-                      </div>
-                      <div className="report-row">
-                        <div className="report-label">Latency</div>
-                        <div className="report-value">{dexReport?.latency_sec} sec</div>
-                      </div>
+                    <div className="report-row">
+        <div className="report-label">Risk Score</div>
+        <div className="report-value">{dexReport?.risk_assessment?.score || "0.0"}</div>
+      </div>
+      <div className="report-row">
+        <div className="report-label">Applicant ID</div>
+        <div className="report-value">{dexReport?.meta?.applicant_id}</div>
+      </div>
+      {/* <div className="report-row">
+        <div className="report-label">Session ID</div>
+        <div className="report-value" style={{ fontSize: '10px' }}>{dexReport?.meta?.session_id}</div>
+      </div> */}
+      <div className="report-row">
+        <div className="report-label">Status</div>
+        <div className="report-value">{dexReport?.meta?.status}</div>
+      </div>
+      {dexReport?.risk_assessment?.flags?.length > 0 && (
+        <div className="report-row">
+          <div className="report-label">Flags</div>
+          <div className="report-value">{dexReport.risk_assessment.flags.join(', ')}</div>
+        </div>
+      )}
                     </div>
                   </div>
-                ) : (
+                ) :activeTab === 'Behavioural' ? (
+        /* 2. BEHAVIOURAL AGENT VIEW */
+        <div className="report-card">
+          <h2 className="report-title">Behavioral Agent Report</h2>
+          <div className="report-table">
+            <div className="report-row">
+              <div className="report-label">Applicant ID</div>
+              <div className="report-value">{apiData?.behavioral?.ApplicantID || "N/A"}</div>
+            </div>
+            <div className="report-row">
+              <div className="report-label">Risk Score</div>
+              <div className={`report-value ${parseFloat(apiData?.behavioral?.riskScore) > 0.5 ? 'status-fraud' : 'status-review'}`}>
+                {apiData?.behavioral?.riskScore || "N/A"}
+              </div>
+            </div>
+            <div className="report-row">
+              <div className="report-label">Flags</div>
+              <div className="report-value">
+                {apiData?.behavioral?.flags?.length > 0 
+                  ? apiData.behavioral.flags.join(', ') 
+                  : "None"}
+              </div>
+            </div>
+            <div className="report-row">
+              <div className="report-label">Reasoning</div>
+              <div className="report-value">{apiData?.behavioral?.reasoning || "N/A"}</div>
+            </div>
+          </div>
+        </div>
+      ) :
+                 (
                   <>
                     {/* Default KYC / Address View */}
                     <div className="report-card">
                       <h2 className="report-title">Address Verification Report</h2>
-                      <div className="report-table">
-                        <div className="report-row">
-                          <div className="report-label">Verification Status</div>
-                          <div className={`report-value ${addressReport?.verification_status === 'Rejected' ? 'status-fraud' : 'status-review'}`}>
-                            {addressReport?.verification_status || "Pending"}
-                          </div>
-                        </div>
-                        <div className="report-row">
+                           <div className="report-row">
                           <div className="report-label">Application ID</div>
                           <div className="report-value">{addressReport?.application_ID || appData?.id}</div>
                         </div>
-                        <div className="report-row">
-                          <div className="report-label">Summary</div>
-                          <div className="report-value">{addressReport?.summary}</div>
-                        </div>
+                      <div className="report-table">
+                        {addressReport?.error && (
+      <div className="report-row error-row">
+        <div className="report-label">Agent Error</div>
+        <div className="report-value status-fraud">{addressReport.error}</div>
+      </div>
+    )}
+                        {addressReport?.verification_status && (
+      <div className="report-row">
+        <div className="report-label">Verification Status</div>
+        <div className={`report-value ${addressReport.verification_status === 'Rejected' ? 'status-fraud' : 'status-review'}`}>
+          {addressReport.verification_status}
+        </div>
+      </div>
+    )}
+                   
+                          {addressReport?.["2fa_check"] && (
+      <div className="report-row">
+        <div className="report-label">2FA Check</div>
+        <div className="report-value">{addressReport["2fa_check"]}</div>
+      </div>
+    )}
+                       {addressReport?.summary && (
+      <div className="report-row">
+        <div className="report-label">Summary</div>
+        <div className="report-value">{addressReport.summary}</div>
+      </div>
+    )}
                       </div>
                     </div>
 
@@ -312,10 +378,44 @@ const activeAgent = getActiveAgentInfo();
                           <div className="report-label">Risk Status</div>
                           <div className="report-value status-fraud">{kycReport?.status}</div>
                         </div>
-                        <div className="report-row">
+                        {/* <div className="report-row">
                           <div className="report-label">Reason</div>
                           <div className="report-value">{kycReport?.summary}</div>
-                        </div>
+                        </div> */}
+                        <div className="report-row">
+      <div className="report-label">Risk Level</div>
+      <div className="report-value">{kycReport?.risk_level}</div>
+    </div>
+                      </div>
+                    </div>
+
+                     <div className="report-card">
+                      <h2 className="report-title">Final Verdict</h2>
+                      <div className="report-table">
+                     {apiData?.Status && (
+      <div className="report-row">
+        <div className="report-label">Status</div>
+        <div className={`report-value ${apiData.Status === 'Rejected' ? 'status-fraud' : 'status-review'}`}>
+          {apiData.Status}
+        </div>
+      </div>
+    )}
+                     {apiData?.Score !== undefined && (
+      <div className="report-row">
+        <div className="report-label">Score</div>
+        <div className="report-value">{apiData.Score}</div>
+      </div>
+    )}
+                        <div className="report-row">
+      <div className="report-label">Risk Level</div>
+      <div className="report-value">{kycReport?.risk_level}</div>
+    </div>
+      {apiData?.summary && (
+      <div className="report-row">
+        <div className="report-label">Final Summary</div>
+        <div className="report-value">{apiData.summary}</div>
+      </div>
+    )}
                       </div>
                     </div>
                   </>
@@ -323,14 +423,21 @@ const activeAgent = getActiveAgentInfo();
               </>
             )}
 
-            <div className="process-stream" onClick={() => setIsStreamOpen(true)}>
+            {/* <div className="process-stream" onClick={() => setIsStreamOpen(true)}>
                 Click to View Process Stream
-            </div>
+            </div> */}
+            {activeTab !== 'Behavioural' && (
+  <div className="process-stream" onClick={() => setIsStreamOpen(true)}>
+    Click to View Process Stream
+  </div>
+)}
 
-            <div className='action-buttons'>
-              <button className='btn approve-btn'>Approve</button>
-              <button className='btn reject-btn'>Reject</button>
-            </div>
+            {apiData?.Status !== 'Approved' && kycReport?.status !== 'Approved' && (
+    <div className='action-buttons'>
+      <button className='btn approve-btn'>Approve</button>
+      {/* <button className='btn reject-btn'>Reject</button> */}
+    </div>
+  )}
           </main>
         </div>
       </div>

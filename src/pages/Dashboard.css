@@ -244,7 +244,6 @@
     border-radius: 6px;
     font-weight: bold;
     font-size: 12px;
-    /* text-transform: uppercase; */
     text-align: center;
     min-width: 70px;
 }
@@ -255,7 +254,6 @@
 }
 
 .status-pending {
-    /* background-color: var(--pending-yellow); */
     background-color: whitesmoke;
     color: #E9C71D;
 }
@@ -442,10 +440,10 @@
 
 .modal-content {
   background: #fff;
-  min-width: 50%;
+  min-width: 80%;
   /* min-height: 80%; */
   /* width: 900px; */
-  max-width: 75%;
+  max-width: 80%;
   border-radius: 12px;
   overflow: hidden;
   box-shadow: 0 10px 25px rgba(0,0,0,0.2);
@@ -700,7 +698,7 @@ td, span.status-badge {
 
 /* Specific Status Colors */
 .status-review {
-  color: #5d5cde; /* The purple/blue "Marked for review" color */
+  color: #10d310; /* The purple/blue "Marked for review" color */
 }
 
 .status-fraud {
@@ -740,7 +738,8 @@ td, span.status-badge {
 
 .stream-modal-content {
   background: white;
-  min-width: 670px;
+  min-width: 50%;
+  max-width: 75%;
   border-radius: 10px;
   overflow: hidden;
   box-shadow: 0 10px 25px rgba(0,0,0,0.2);
@@ -793,6 +792,17 @@ td, span.status-badge {
 .stream-value {
   /* flex: 1; */
   font-size: 16px;
+}
+
+.xai-content {
+  white-space: pre-wrap; 
+  line-height: 2; 
+}
+
+.logs-container {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
 }
 
 .status-completed {

@@ -14,7 +14,6 @@ import BehaviourIcon from '../assets/agentIcons/fifthPulse.png';
 import KYCIcon from '../assets/agentIcons/lastIcon.png';
  
 const AGENTS = [
-  // { id: 'upload', label: 'Uploader Agent' },
    { id: 'dashboard', label: 'Dashboard', icon: DashboardIcon },
   {id: 'Dynamic Orchestration Agent', label: 'Dynamic Orch. Agent', icon: FileIcon},
   { id: 'Delegation_Agent', label: 'DEX Agent', icon: BarGraphIcon },
@@ -71,7 +70,6 @@ const Dashboard = () => {
                   tabIndex={0}
                   onKeyDown={(e) => e.key === 'Enter' && dispatch({type: "SET_SELECTED_AGENT", payload: a.id})}
                 >
-                  {/* <span className="square" aria-hidden /> */}
                   <img 
                     src={a.icon} 
                     alt="" 

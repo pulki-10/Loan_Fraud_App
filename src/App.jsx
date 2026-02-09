@@ -20,8 +20,6 @@ function App() {
        <Route path="/loan-dashboard" element={<LoanDashboard />} />
        </Route>
      </Routes>
-    {/* <BankingDashboard /> */}
-     {/* <LoanDashboard/> */}
     </AppProvider>
   );
 }
